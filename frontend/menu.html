@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8" />
+   <title>Login</title>
+   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+   <meta content="" name="description" />
+   <meta content="" name="author" />
+   <link href="{% static 'assets/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+   <link href="{% static 'assets/bootstrap/css/bootstrap-responsive.min.css' %}" rel="stylesheet" />
+   <link href="{% static 'assets/font-awesome/css/font-awesome.css' %}" rel="stylesheet" />
+   <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+   <link href="{% static 'css/style-responsive.css' %}" rel="stylesheet" />
+   <link href="{% static 'css/style-default.css' %}" rel="stylesheet" id="style_color" />
+</head>
+<body>
+
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="widget purple" style="margin-top: 20px; margin-left: 20px; margin-right: 20px; margin-bottom: 20px;">
+
+                <div class="widget-title">
+                    <h4><i class="icon-reorder"></i> Productos </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="btn-group" style="display: flex; justify-content: space-evenly;">
+
+                        <label id="total-registros-1"></label>
+                        <button class="btn btn-success" onclick="mostrarTotalRegistros()"><i class="icon-arrow-up icon-white"></i> Mostrar Todos </button>
+                        <button class="btn btn-success" onclick="mostrarProductosDiferentes()"><i class="icon-exchange icon-white"></i> Productos Diferentes </button>
+                        <button class="btn btn-success" onclick="mostrarProductosNoUnidad()"><i class="icon-underline icon-white"></i> Productos No Unidad </button>
+                        <button class="btn btn-success" onclick="mostrarProductosDisponibles()"><i class="icon-sort-by-order-alt icon-white"></i> Productos Disponibles</button>
+
+                    </div>
+                    <div>
+                        <div class="space15"></div>
+                        <table class="table table-striped table-hover table-bordered" id="editable-sample">
+                            <thead>
+                                <tr>
+                                    <th> ID </th>
+                                    <th> Producto </th>
+                                    <th> Unidad </th>
+                                    <th> Cantidad </th>
+                                </tr>
+                            </thead>
+                            <tbody id="productos-body">
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        var productosJson = JSON.parse('{{ productos_json|escapejs }}');
+        var arrayProductos = productosJson.response.data
+
+        var tbody = document.getElementById('productos-body');
+
+        function mostrarTotalRegistros() {
+
+            tbody.innerHTML = "";
+            arrayProductos.forEach((prod) => {
+                var row = '<tr>' +
+                    '<td>' + prod.product + '</td>' +
+                    '<td>' + prod.product$_identifier + '</td>' +
+                    '<td>' + prod.uOM$_identifier + '</td>' +
+                    '<td>' + prod.quantityOnHand + '</td>' +
+                    '</tr>';
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('total-registros-1').innerText = 'Total de Registros: ' + arrayProductos.length;
+        }
+
+        function mostrarProductosDiferentes() {
+            
+            tbody.innerHTML = "";
+            var prodDiferentes = [];
+
+            arrayProductos.forEach((prod) => {
+
+                if (!prodDiferentes.includes(prod.product)) {
+                    prodDiferentes.push(prod.product);
+                    var row = '<tr>' +
+                        '<td>' + prod.product + '</td>' +
+                        '<td>' + prod.product$_identifier + '</td>' +
+                        '<td>' + prod.uOM$_identifier + '</td>' +
+                        '<td>' + prod.quantityOnHand + '</td>' +
+                        '</tr>';
+                    tbody.innerHTML += row;
+                }
+
+            });
+
+            document.getElementById('total-registros-1').innerText = 'Total de Registros: ' + prodDiferentes.length;
+        }
+
+        function mostrarProductosNoUnidad() {
+
+            tbody.innerHTML = "";
+            var prodNoUnidad = arrayProductos.filter((prod) => prod.uOM$_identifier !== 'UNIDAD');
+            
+            prodNoUnidad.forEach((prod) => {
+                var row = '<tr>' +
+                    '<td>' + prod.product + '</td>' +
+                    '<td>' + prod.product$_identifier + '</td>' +
+                    '<td>' + prod.uOM$_identifier + '</td>' +
+                    '<td>' + prod.quantityOnHand + '</td>' +
+                    '</tr>';
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('total-registros-1').innerText = 'Total de Registros: ' + prodNoUnidad.length;
+        }
+
+        function mostrarProductosDisponibles() {
+
+            tbody.innerHTML = "";
+            var prodStock = arrayProductos.slice().sort((a, b) => b.quantityOnHand - a.quantityOnHand);
+            var totalRegistros;
+        
+            for (var i = 0; i < 10 && i < prodStock.length; i++) {
+                var prod = prodStock[i];
+                var row = '<tr>' +
+                    '<td>' + prod.product + '</td>' +
+                    '<td>' + prod.product$_identifier + '</td>' +
+                    '<td>' + prod.uOM$_identifier + '</td>' +
+                    '<td>' + prod.quantityOnHand + '</td>' +
+                    '</tr>';
+                tbody.innerHTML += row;
+                totalRegistros = i+1
+            }
+        
+            document.getElementById('total-registros-1').innerText = 'Total de Registros: ' + totalRegistros;
+        }
+
+        mostrarTotalRegistros();
+
+    </script>
+</body>
+</html>
